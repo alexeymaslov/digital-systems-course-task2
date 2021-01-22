@@ -5,17 +5,17 @@ use IEEE.math_real."ceil";
 use IEEE.math_real."log2";
 
 entity checkerboard is 
-  generic ( N : integer := 2); -- размер клетки шахматной доски в пикселях
+  generic ( N : integer := 2); -- checkerboard cell size
   port (
     clk : in std_logic;
     rst : in std_logic;
-    -- входной поток видео
-    inp_tvalid : in std_logic; -- маркер пикселя
-    inp_tlast : in std_logic; -- последний пиксель строки
-    inp_tuser : in std_logic_vector(0 downto 0); -- первый пиксель каждого кадра
-    inp_tdata : in std_logic_vector(7 downto 0); -- черно-белое 8 бит на пиксель видео. строчки сверху вниз, в строчке слева направо
-    -- выход
-    outp_tvalid : out std_logic; -- маркер ответа
+    -- input stream
+    inp_tvalid : in std_logic; -- valid input marker
+    inp_tlast : in std_logic; -- last pixel marker
+    inp_tuser : in std_logic_vector(0 downto 0); -- first pixel of frame marker
+    inp_tdata : in std_logic_vector(7 downto 0);
+    -- output stream
+    outp_tvalid : out std_logic; -- valid output marker
     outp_tdata : out std_logic_vector(7 downto 0)
   );
 end checkerboard;
@@ -23,9 +23,9 @@ end checkerboard;
 architecture rtl of checkerboard is
 constant BLACK : std_logic_vector(7 downto 0) := "00000000";
 constant WHITE : std_logic_vector(7 downto 0) := "11111111";
-constant M : integer := integer(ceil(log2(real(N)))); -- сколькобитовое число нужно для кодирования размера клетки шахматной доски
+constant M : integer := integer(ceil(log2(real(N)))); -- how many bits needed to code the N
 
-signal hor_step_counter : unsigned(M - 1 downto 0); -- 0 downto 0 не уверен
+signal hor_step_counter : unsigned(M - 1 downto 0);
 signal vert_step_counter : unsigned(M - 1 downto 0);
 
 signal intensity : std_logic_vector(7 downto 0);
