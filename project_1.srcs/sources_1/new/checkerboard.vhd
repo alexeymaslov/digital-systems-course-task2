@@ -16,6 +16,8 @@ entity checkerboard is
     inp_tdata : in std_logic_vector(7 downto 0);
     -- output stream
     outp_tvalid : out std_logic; -- valid output marker
+    outp_tlast : out std_logic;
+    outp_tuser : out std_logic_vector(0 downto 0);
     outp_tdata : out std_logic_vector(7 downto 0)
   );
 end checkerboard;
@@ -40,6 +42,8 @@ begin
         if clk'event and clk = '1' then
             if rst = '1' then
                 outp_tvalid <= '0';
+                outp_tlast <= '0';
+                outp_tuser <= "0";
                 
                 hor_step_counter <= conv_unsigned(0, M);
                 vert_step_counter <= conv_unsigned(0, M);
@@ -48,12 +52,13 @@ begin
                 start_of_line_is_white <= '0';
                 should_change_color <= '0';
                 should_change_start_of_line_color <= '0';
-                        should_reset_to_start_of_line_color <= '0';
+                should_reset_to_start_of_line_color <= '0';
             else
                 if inp_tvalid = '1' then
                     outp_tvalid <= '1';
                                                           
                     if inp_tuser = "1" then 
+                        outp_tuser <= "1";
                         hor_step_counter <= conv_unsigned(0, M);
                         vert_step_counter <= conv_unsigned(0, M);
                         intensity <= WHITE;
@@ -61,6 +66,8 @@ begin
                         should_change_color <= '0';
                         should_change_start_of_line_color <= '0';
                         should_reset_to_start_of_line_color <= '0';
+                    else
+                        outp_tuser <= "0";
                     end if;
                     
                     if should_reset_to_start_of_line_color = '1' and inp_tuser = "0" then
@@ -100,6 +107,7 @@ begin
                     end if;                 
                     
                     if inp_tlast = '1' then
+                        outp_tlast <= '1';
                         hor_step_counter <= conv_unsigned(0, M);
                         should_change_color <= '0';
                         if vert_step_counter < conv_unsigned(N - 1, M) then
@@ -108,10 +116,14 @@ begin
                         else
                             vert_step_counter <= conv_unsigned(0, M);
                             should_change_start_of_line_color <= '1';
-                        end if;     
+                        end if;
+                    else
+                        outp_tlast <= '0';
                     end if;
                 else
-                    outp_tvalid <= '0'; -- invalid when input is not a pixel
+                    outp_tvalid <= '0'; -- invalid when input is valid
+                    outp_tlast <= '0';
+                    outp_tuser <= "0";
                 end if;    
             end if;
         end if;
